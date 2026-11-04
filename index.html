@@ -12,7 +12,6 @@
             line-height: 1.6;
         }
         
-        /* コンテナをスマホ全画面に合わせる */
         #container { 
             max-width: 600px; 
             margin: 0 auto; 
@@ -23,12 +22,11 @@
         h1 { font-size: 1.5rem; text-align: center; }
         h2 { font-size: 1.25rem; }
 
-        /* ボタン共通スタイル */
         button {
             display: block;
             width: 100%;
             padding: 15px;
-            font-size: 16px; /* スマホで拡大されない最小サイズ */
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             border: none;
@@ -76,8 +74,7 @@
             padding-bottom: 10px; 
         }
         
-        #next-btn { background-color: #007bff; color: white; }
-        #reset-btn { background-color: #007bff; color: white; text-align: center; }
+        #next-btn, #reset-btn { background-color: #007bff; color: white; text-align: center; }
     </style>
 </head>
 <body>
@@ -113,7 +110,6 @@
 </div>
 
 <script>
-    // 37問のデータ（省略せず反映してください）
     const fullData = [
         {"quiz": "岩宿遺跡を発見し、日本にも旧石器時代が存在することを証明した人物は誰か？。", "answer": "相沢忠洋", "incorrect option1": "野口遼太", "incorrect option2": "モース", "incorrect option3": "重野安繹", "explanation": "納豆売りをしながら独学で研究を続け、関東ローム層から石器を発見しました。"},
         {"quiz": "旧石器時代の人々が既に使用していた、石を打ち欠いて作る石器をなんというか？", "answer": "打製石器", "incorrect option1": "磨製石器", "incorrect option2": "ダせぇ石器", "incorrect option3": "石包丁", "explanation": "石や骨に組み込んで使用する等、様々な方法で用いられていました。"},
@@ -133,4 +129,114 @@
         {"quiz": "収穫した穀物を湿気や害獣から守るため、床面を高く保った建物を何というか？", "answer": "高床倉庫", "incorrect option1": "高蔵", "incorrect option2": "掘立柱式倉庫", "incorrect option3": "屯倉", "explanation": "柱の上に「ネズミ返し」を備え、穀物の長期間保存を可能にしました。"},
         {"quiz": "収穫の際に、稲の穂首だけを摘み取るために用いられた石製の道具を何というか？", "answer": "石包丁", "incorrect option1": "石斧", "incorrect option2": "鉄剣", "incorrect option3": "磨製石器", "explanation": "紐を通して手に固定し、稲の穂首を摘み取る「穂首刈り」に使いました。"},
         {"quiz": "57年に後漢の光武帝から奴国の国王に授けられたとされ、江戸時代の現在の福岡県志賀島で出土した金印の刻印は何か？", "answer": "漢委奴国王", "incorrect option1": "漢倭奴国王", "incorrect option2": "親魏倭王", "incorrect option3": "東夷之倭王", "explanation": "志賀島の甚兵衛さんが埋められていた金印を掘り起こしました。"},
-        {"quiz": "卑弥呼の都や邪馬台国の様子が記録されている、中国の歴史書『三国志』の中の記述は何か？", "answer": "『魏志』倭人伝", "incorrect option1": "『漢書』地理誌", "incorrect option2": "『後漢書』東夷伝", "incorrect option3": "『宋書』倭国伝", "explanation": "文字の無かった当時の日本を知る貴重な資料ですが、約1800年間転写を繰り返すうちに内容が段々事実とズレてきていることが指摘されています。"},
+        {"quiz": "卑弥呼の都や邪馬台国の様子が記録されている、中国の歴史書『三国志』の中の記述は何か？", "answer": "『魏志』倭人伝", "incorrect option1": "『漢書』地理誌", "incorrect option2": "『後漢書』東夷伝", "incorrect option3": "『宋書』倭国伝", "explanation": "文字の無かった当時の日本を知る貴重な資料ですが、約1800年間転写を繰り返すうちに内容が段々事実とズレてきていることが指摘されています。"}
+    ];
+
+    let currentIndex = 0;
+    let score = 0;
+    let currentQuestions = [];
+
+    const startScreen = document.getElementById("start-screen");
+    const quizScreen = document.getElementById("quiz-screen");
+    const feedbackScreen = document.getElementById("feedback-screen");
+    const resultScreen = document.getElementById("result-screen");
+
+    const startBtn = document.getElementById("start-btn");
+    const questionText = document.getElementById("question-text");
+    const optionsContainer = document.getElementById("options-container");
+    
+    const fbQuestionText = document.getElementById("fb-question-text");
+    const judgeText = document.getElementById("judge-text");
+    const explanationText = document.getElementById("explanation-text");
+    const nextBtn = document.getElementById("next-btn");
+    
+    const scoreText = document.getElementById("score-text");
+    const messageText = document.getElementById("message-text");
+    const resetBtn = document.getElementById("reset-btn");
+
+    // スタートボタン
+    startBtn.addEventListener("click", () => {
+        startScreen.classList.add("hidden");
+        quizScreen.classList.remove("hidden");
+        // 問題をシャッフルしてコピー
+        currentQuestions = [...fullData].sort(() => Math.random() - 0.5);
+        currentIndex = 0;
+        score = 0;
+        showQuestion();
+    });
+
+    // 問題を表示
+    function showQuestion() {
+        const q = currentQuestions[currentIndex];
+        questionText.textContent = `第 ${currentIndex + 1} 問: ${q.quiz}`;
+        optionsContainer.innerHTML = "";
+
+        // 選択肢（正解＋不正解）をまとめる
+        const options = [
+            q.answer,
+            q["incorrect option1"],
+            q["incorrect option2"],
+            q["incorrect option3"]
+        ].sort(() => Math.random() - 0.5);
+
+        // ボタンを生成
+        options.forEach(option => {
+            const btn = document.createElement("button");
+            btn.textContent = option;
+            btn.classList.add("option-btn");
+            btn.addEventListener("click", () => checkAnswer(option, q.answer, q));
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    // 答え合わせ
+    function checkAnswer(selected, correct, q) {
+        quizScreen.classList.add("hidden");
+        feedbackScreen.classList.remove("hidden");
+
+        fbQuestionText.textContent = `問題: ${q.quiz}`;
+        if (selected === correct) {
+            judgeText.textContent = "⭕ 正解！";
+            judgeText.style.color = "green";
+            score++;
+        } else {
+            judgeText.textContent = `❌ 不正解... （正解は「${correct}」です）`;
+            judgeText.style.color = "red";
+        }
+        explanationText.textContent = q.explanation;
+    }
+
+    // 次の問題へ
+    nextBtn.addEventListener("click", () => {
+        feedbackScreen.classList.add("hidden");
+        currentIndex++;
+        if (currentIndex < currentQuestions.length) {
+            quizScreen.classList.remove("hidden");
+            showQuestion();
+        } else {
+            showResult();
+        }
+    });
+
+    // 結果表示
+    function showResult() {
+        resultScreen.classList.remove("hidden");
+        scoreText.textContent = `${currentQuestions.length}問中 ${score}問正解しました！`;
+        if (score === currentQuestions.length) {
+            messageText.textContent = "おめでとうございます！完璧な旧石器＆縄文＆弥生マスターです！";
+        } else if (score >= currentQuestions.length * 0.8) {
+            messageText.textContent = "素晴らしい！あと一歩でマスターです！";
+        } else {
+            messageText.textContent = "もう一度挑戦してマスターを目指そう！";
+        }
+    }
+
+    // 最初に戻る
+    resetBtn.addEventListener("click", () => {
+        resultScreen.classList.add("hidden");
+        startScreen.classList.remove("hidden");
+    });
+</script>
+
+</body>
+</html>
